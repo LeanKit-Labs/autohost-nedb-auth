@@ -64,9 +64,33 @@ describe( 'when working with actions', function() {
 				'two.b',
 				'two.c', 
 			];
-			expected.should.eql( _.map( actionList, function( a ) { return a.name; } ) );
+			expected.should.eql( _.map( actionList, 'name' ) );
 		} );
 
+	} );
+
+	describe( 'when changing an action\'s roles', function() {
+		var roles;
+
+		before( function( done ) {
+			seq( [
+				function() { return actions.changeRoles( 'one.a', [ 'r1', 'r2', 'r3', 'r4' ], 'add' ); },
+				function() { return actions.changeRoles( 'one.a', [ 'r6', 'r2', 'r4', 'r5' ], 'add' ); },
+				function() { return actions.changeRoles( 'one.a', [ 'r3', 'r1', 'r5' ], 'remove' ); },
+				function() { return actions.getRoles( 'one.a' ); }
+				] )
+			.then( null, function( err ) {
+				console.log( err );
+			} )
+			.then( function( x ) {
+				roles = x[ 3 ];
+				done();
+			} );
+		} );
+
+		it( 'should remove only the destroyed token', function() {
+			roles.should.eql( [ 'r2', 'r4', 'r6' ] );
+		} );
 	} );
 
 

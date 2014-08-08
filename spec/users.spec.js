@@ -30,7 +30,7 @@ describe( 'when creating', function() {
 	it( 'should create user', function( done ) {
 		users.getByName( 'userone' )
 			.then( function( user ) {
-				user.username.should.equal( 'userone' );
+				user.name.should.equal( 'userone' );
 				user.salt.should.equal( 'two' );
 				user.hash.should.equal( 'three' );
 				user.roles.should.eql( [] );
@@ -58,7 +58,7 @@ describe( 'when creating', function() {
 		} );
 
 		it( 'should change password', function() {
-			user.username.should.equal( 'userone' );
+			user.name.should.equal( 'userone' );
 			user.salt.should.equal( 'four' );
 			user.hash.should.equal( 'five' );
 		} );
@@ -66,27 +66,30 @@ describe( 'when creating', function() {
 	} );
 
 	describe( 'when creating tokens', function() {
-		var user;
+		var tokens, user;
 
 		before( function( done ) {
 			seq( [
 				function() { return users.createToken( 'userone', 'six' ); },
 				function() { return users.createToken( 'userone', 'seven' ); },
 				function() { return users.createToken( 'userone', 'eight' ); },
+				function() { return users.getTokens( 'userone' ); },
 				function() { return users.getByName( 'userone' ); }
 				] )
 			.then( null, function( err ) {
 				console.log( err.stack );
 			} )
 			.then( function( x ) {
-				user = x[ 3 ];
+				tokens = x[ 3 ];
+				user = x[ 4 ];
 				done();
 			} );
 		} );
 
 		it( 'should add a token', function() {
-			user.username.should.equal( 'userone' );
+			user.name.should.equal( 'userone' );
 			user.tokens.should.eql( [ 'six', 'seven', 'eight' ] );
+			tokens.should.eql( [ 'six', 'seven', 'eight' ] );
 		} );
 
 	} );
@@ -109,7 +112,7 @@ describe( 'when creating', function() {
 		} );
 
 		it( 'should remove only the destroyed token', function() {
-			user.username.should.equal( 'userone' );
+			user.name.should.equal( 'userone' );
 			user.tokens.should.eql( [ 'six', 'eight' ] );
 		} );
 
@@ -130,7 +133,7 @@ describe( 'when creating', function() {
 		} );
 
 		it( 'should add a token', function() {
-			user.username.should.equal( 'userone' );
+			user.name.should.equal( 'userone' );
 			user.tokens.should.eql( [ 'six', 'eight' ] );
 		} );
 
@@ -238,6 +241,9 @@ describe( 'when creating', function() {
 					return users.getList( list.continuation );
 				}
 				], { limit: 3 } )
+			.then( null, function( err ) {
+				console.log( 'FAIL', err.stack );
+			} )
 			.then( function( list ) {
 				page3 = list;
 				done();
@@ -262,11 +268,10 @@ describe( 'when creating', function() {
 				'userthree',
 				'usertwo'
 			];
-			var getName = function( x ) { return x.username; };
 			_.flatten( [
-				_.map( page1, getName ),
-				_.map( page2, getName ),
-				_.map( page3, getName )
+				_.map( page1, 'name' ),
+				_.map( page2, 'name' ),
+				_.map( page3, 'name' )
 			] ).should.eql( userList );
 		} );
 	} );

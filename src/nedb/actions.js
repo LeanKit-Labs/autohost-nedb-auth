@@ -34,7 +34,7 @@ function purge( actionname ) {
 module.exports = {
 	changeRoles: changeRoles,
 	create: create,
-	delete: purge,
+	'delete': purge,
 	getList: getList,
 	getRoles: getRoles
 }

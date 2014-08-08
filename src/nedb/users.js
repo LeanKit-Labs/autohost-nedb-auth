@@ -1,7 +1,8 @@
-var users = require( './db.js' )( 'users.db' );
+var _ = require( 'lodash' ),
+	users = require( './db.js' )( 'users.db' );
 
 function changePassword( username, salt, hash ) {
-	return users.update( { username: username }, { $set: { salt: salt, hash: hash } } );
+	return users.update( { name: username }, { $set: { salt: salt, hash: hash } } );
 }
 
 function changeRoles( username, roles, verb ) {
@@ -11,35 +12,35 @@ function changeRoles( username, roles, verb ) {
 		command = { roles: {} };
 	command.roles[ comp ] = roles;
 	mutation[ op ] = command;
-	return users.update( { username: username }, mutation );
+	return users.update( { name: username }, mutation );
 }
 
 function createToken( username, token ) {
-	return users.update( { username: username }, { $addToSet: { tokens: token } } );
+	return users.update( { name: username }, { $addToSet: { tokens: token } } );
 }
 
 function create( username, salt, hash ) {
-	return users.upsert( { username: username }, { username: username, salt: salt, hash: hash, roles: [], tokens: [] } );
+	return users.upsert( { name: username }, { name: username, salt: salt, hash: hash, roles: [], tokens: [] } );
 }
 
 function purge( username ) {
-	return users.purge( { username: username } );
+	return users.purge( { name: username } );
 }
 
 function destroyToken( username, token ) {
-	return users.update( { username: username }, { $pull: { tokens: token } } );
+	return users.update( { name: username }, { $pull: { tokens: token } } );
 }
 
 function disable( username ) {
-	return users.update( { username: username }, { $set: { disabled: true } } );
+	return users.update( { name: username }, { $set: { disabled: true } } );
 }
 
 function enable( username ) {
-	return users.update( { username: username }, { $set: { disabled: false } } );
+	return users.update( { name: username }, { $set: { disabled: false } } );
 }
 
 function getByName( username ) {
-	return users.fetch( { username: username } )
+	return users.fetch( { name: username } )
 		.then( function( list ) {
 			return list.length ? list[ 0 ] : undefined;
 		} );
@@ -53,13 +54,27 @@ function getByToken( token ) {
 }
 
 function getList( continuation ) {
-	continuation = continuation || { sort: { username: 1 } };
-	continuation.sort = continuation.sort || { username: 1 };
-	return users.fetch( {}, undefined, continuation );
+	continuation = continuation || { sort: { name: 1 } };
+	continuation.sort = continuation.sort || { name: 1 };
+	return users.fetch( {}, undefined, continuation )
+		.then( function( list ) {
+			var filtered = _.map( list, function( user ) {
+				return _.omit( user, 'tokens', 'hash', 'salt' );
+			} );
+			filtered.continuation = list.continuation;
+			return filtered;
+		} );
 }
 
 function getRoles( username ) {
-	return users.fetch( { username: username }, function( x ) { return x.roles; } )
+	return users.fetch( { name: username }, function( x ) { return x.disabled ? [] : x.roles; } )
+		.then( function( list ) {
+			return list.length ? list[ 0 ] : [];
+		} );
+}
+
+function getTokens( username ) {
+	return users.fetch( { name: username }, function( x ) { return x.tokens; } )
 		.then( function( list ) {
 			return list.length ? list[ 0 ] : [];
 		} );
@@ -82,5 +97,6 @@ module.exports = {
 	getByToken: getByToken,
 	getList: getList,
 	getRoles: getRoles,
+	getTokens: getTokens,
 	hasUsers: hasUsers	
 };

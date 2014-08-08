@@ -21,6 +21,9 @@ var wrapper = {
 	createRole: roles.create,
 	createUser: createUser,
 	createToken: users.createToken,
+	deleteAction: actions[ 'delete' ],
+	deleteRole: roles[ 'delete' ],
+	deleteUser: users[ 'delete' ],
 	destroyToken: users.destroyToken,
 	deserializeUser: deserializeUser,
 	disableUser: users.disable,
@@ -28,10 +31,10 @@ var wrapper = {
 	getActions: actions.getList,
 	getActionRoles: actions.getRoles,
 	getRoles: roles.getList,
+	getTokens: users.getTokens,
 	getUsers: users.getList,
 	getUserRoles: users.getRoles,
 	hasUsers: users.hasUsers,
-	removeRole: roles.delete,
 	serializeUser: serializeUser,
 	strategies: [
 		new Basic( authenticateCredentials ),
@@ -39,31 +42,24 @@ var wrapper = {
 		new Token( authenticateToken )
 	],
 	updateActions: updateActions,
+	verifyCredentials: verifyCredentials
 };
 
 function authenticate( req, res, next ) {
 	var authorization = req.headers.authorization;
-	if( /Basic/i.test( authorization ) ) {
-		basicAuth( req, res, next );
-	}
-	else if( req._query && req._query[ 'token' ] ) {
-		queryAuth( req, res, next );
-	} else {
+	if( /Token/i.test( authorization ) ) {
+		tokenAuth( req, res, next );
+	} else if( /Bearer/i.test( authorization ) ) {
 		bearerAuth( req, res, next );
+	} else {
+		basicAuth( req, res, next );
 	}
 }
 
 function authenticateCredentials( userName, password, done ) {
-	return users
-		.getByName( username )
-		.then( null, function( err ) {
-			done( err );
-		} )
-		.then( function( users ) {
-			var user = _.where( users, function( u ) {
-				return u.hash === crypt.hashSync( password, u.salt );
-			} );
-			done( null, user ? user : false );
+	verifyCredentials( userName, password )
+		.then( function( result ) {
+			done( null, result );
 		} );
 }
 
@@ -84,16 +80,21 @@ function changePassword( username, password ) {
 	return users.changePassword( username, salt, hash );
 }
 
-function createUser( user, password ) {
+function createUser( username, password ) {
 	var salt = crypt.genSaltSync( 10 ),
 		hash = crypt.hashSync( password, salt );
 	return users.create( username, salt, hash );
 }
 
 function checkPermission( user, action ) {
-	var userName = user.name ? user.name : user,
+	var actionName = action.roles ? action.name : action,
+		actionRoles = _.isEmpty( action.roles ) ? actions.getRoles( actionName ) : action.roles,
+		userName = user.name ? user.name : user,
 		userRoles = _.isEmpty( user.roles ) ? users.getRoles( userName ) : user.roles;
-	return when.try( userCan, userRoles, actions.getRoles( action ) );
+	if( user.roles && user.disabled ) {
+		userRoles = [];
+	}
+	return when.try( userCan, userRoles, actionRoles );
 }
 
 function deserializeUser( user, done ) { done( null, user); }
@@ -112,6 +113,19 @@ function updateActions( actionList ) {
 
 function userCan( userRoles, actionRoles ) {
 	return actionRoles.length == 0 || _.intersection( actionRoles, userRoles ).length > 0;
+}
+
+function verifyCredentials( username, password ) {
+	return users
+		.getByName( username )
+		.then( function( user ) {
+			if( user ) {
+				var valid = user.hash === crypt.hashSync( password, user.salt );
+				return valid ? _.omit( user, 'hash', 'salt', 'tokens' ) : false;
+			} else {
+				return false;
+			}
+		} );
 }
 
 module.exports = function( config ) {

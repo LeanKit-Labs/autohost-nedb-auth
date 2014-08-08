@@ -88,7 +88,7 @@ module.exports = function( fileName ) {
 		fetch: fetch.bind( null, api ),
 		fetch: function( pattern, map, continuation ) {
 			if( ( _.isObject( continuation ) && continuation.limit ) || _.isNumber( continuation ) ) {
-				fetchPage( api, pattern, map, continuation );
+				return fetchPage( api, pattern, map, continuation );
 			} else {
 				return fetch( api, pattern, map, continuation );
 			}	
