@@ -22,4 +22,4 @@ module.exports = {
 	create: create,
 	'delete': purge,
 	getList: getList
-}
+};

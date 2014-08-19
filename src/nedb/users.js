@@ -6,10 +6,10 @@ function changePassword( username, salt, hash ) {
 }
 
 function changeRoles( username, roles, verb ) {
-	var mutation = {},
-		op = verb === 'add' ? '$addToSet' : '$pull',
-		comp = verb === 'add' ? '$each' : '$in',
-		command = { roles: {} };
+	var mutation = {};
+	var op = verb === 'add' ? '$addToSet' : '$pull';
+	var comp = verb === 'add' ? '$each' : '$in';
+	var command = { roles: {} };
 	command.roles[ comp ] = roles;
 	mutation[ op ] = command;
 	return users.update( { name: username }, mutation );

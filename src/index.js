@@ -1,16 +1,16 @@
-var crypt = require( 'bcrypt' ),
-	when = require( 'when' ),
-	passport = require( 'passport' ),
-	Basic = require( 'passport-http' ).BasicStrategy,
-	Bearer = require( 'passport-http-bearer' ).Strategy,
-	Token = require( './tokenStrategy' ),
-	_ = require( 'lodash' ),
-	actions = require( './nedb/actions.js' ),
-	roles = require( './nedb/roles.js' ),
-	users = require( './nedb/users.js' ),
-	basicAuth,
-	bearerAuth,
-	tokenAuth;
+var crypt = require( 'bcrypt' );
+var when = require( 'when' );
+var Basic = require( 'passport-http' ).BasicStrategy;
+var Bearer = require( 'passport-http-bearer' ).Strategy;
+var Token = require( './tokenStrategy' );
+var _ = require( 'lodash' );
+var actions = require( './nedb/actions.js' );
+var roles = require( './nedb/roles.js' );
+var users = require( './nedb/users.js' );
+var basicAuth;
+var bearerAuth;
+var tokenAuth;
+var useSession;
 
 var wrapper = {
 	authenticate: authenticate,
@@ -35,6 +35,11 @@ var wrapper = {
 	getUsers: users.getList,
 	getUserRoles: users.getRoles,
 	hasUsers: users.hasUsers,
+	initPassport: function( passport ) {
+		basicAuth = passport.authenticate( 'basic', { session: useSession } );
+		bearerAuth = passport.authenticate( 'bearer', { session: useSession } );
+		tokenAuth = passport.authenticate( 'token', { session: useSession } );
+	},
 	serializeUser: serializeUser,
 	strategies: [
 		new Basic( authenticateCredentials ),
@@ -75,22 +80,22 @@ function authenticateToken( token, done ) {
 }
 
 function changePassword( username, password ) {
-	var salt = crypt.genSaltSync( 10 ),
-		hash = crypt.hashSync( password, salt );
+	var salt = crypt.genSaltSync( 10 );
+	var hash = crypt.hashSync( password, salt );
 	return users.changePassword( username, salt, hash );
 }
 
 function createUser( username, password ) {
-	var salt = crypt.genSaltSync( 10 ),
-		hash = crypt.hashSync( password, salt );
+	var salt = crypt.genSaltSync( 10 );
+	var hash = crypt.hashSync( password, salt );
 	return users.create( username, salt, hash );
 }
 
 function checkPermission( user, action ) {
-	var actionName = action.roles ? action.name : action,
-		actionRoles = _.isEmpty( action.roles ) ? actions.getRoles( actionName ) : action.roles,
-		userName = user.name ? user.name : user,
-		userRoles = _.isEmpty( user.roles ) ? users.getRoles( userName ) : user.roles;
+	var actionName = action.roles ? action.name : action;
+	var actionRoles = _.isEmpty( action.roles ) ? actions.getRoles( actionName ) : action.roles;
+	var userName = user.name ? user.name : user;
+	var userRoles = _.isEmpty( user.roles ) ? users.getRoles( userName ) : user.roles;
 	if( user.roles && user.disabled ) {
 		userRoles = [];
 	}
@@ -112,7 +117,7 @@ function updateActions( actionList ) {
 }
 
 function userCan( userRoles, actionRoles ) {
-	return actionRoles.length == 0 || _.intersection( actionRoles, userRoles ).length > 0;
+	return actionRoles.length === 0 || _.intersection( actionRoles, userRoles ).length > 0;
 }
 
 function verifyCredentials( username, password ) {
@@ -129,9 +134,6 @@ function verifyCredentials( username, password ) {
 }
 
 module.exports = function( config ) {
-	var useSession = !( config == undefined ? false : config.noSession );
-	basicAuth = passport.authenticate( 'basic', { session: useSession } );
-	bearerAuth = passport.authenticate( 'bearer', { session: useSession } );
-	tokenAuth = passport.authenticate( 'token', { session: useSession } );
+	useSession = !( config === undefined ? false : config.noSession );
 	return wrapper;
 };

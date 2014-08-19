@@ -1,10 +1,10 @@
-var _ = require( 'lodash' ),
-	path = require( 'path' ),
-	nedb = require( 'nedb' ),
-	when = require( 'when' ),
-	nodeWhen = require( 'when/node' ),
-	Datastore = require( 'nedb' ),
-	config = require( 'configya' )( {
+var _ = require( 'lodash' );
+var path = require( 'path' );
+var nedb = require( 'nedb' );
+var when = require( 'when' );
+var nodeWhen = require( 'when/node' );
+var Datastore = require( 'nedb' );
+var config = require( 'configya' )( {
 		autohost: {
 			nedb: {
 				data: path.join( process.cwd(), './data' )
@@ -17,25 +17,25 @@ function count( api, pattern ) {
 }
 
 function fetch( api, pattern, map, continuation ) {
-	var continuation = continuation || { sort: {} },
-		map = map || function( x ) { return x; },
-		apply = function( list ) { return _.map( list, map ); },
-		op = api.raw.find( pattern ).sort( continuation.sort ),
-		promise = nodeWhen.apply( op.exec.bind( op ) );
+	continuation = continuation || { sort: {} };
+	map = map || function( x ) { return x; };
+	var apply = function( list ) { return _.map( list, map ); };
+	var op = api.raw.find( pattern ).sort( continuation.sort );
+	var promise = nodeWhen.apply( op.exec.bind( op ) );
 	return when.try( apply, promise );
 }
 
 function fetchPage( api, pattern, map, continuation ) {
-	var limit = continuation.limit ? continuation.limit : continuation,
-		pageIndex = continuation.page ? continuation.page : 1,
-		skipCount = ( pageIndex -1 ) * limit,
-		sort = continuation.sort || {},
-		map = map || function( x ) { return x; },
-		apply = function( list ) {
+	map = map || function( x ) { return x; };
+	var limit = continuation.limit ? continuation.limit : continuation;
+	var pageIndex = continuation.page ? continuation.page : 1;
+	var skipCount = ( pageIndex -1 ) * limit;
+	var sort = continuation.sort || {};
+	var apply = function( list ) {
 			return _.map( list, map ); 
-		},
-		op = api.raw.find( pattern ).sort( sort ).skip( skipCount ).limit( limit ),
-		promise = nodeWhen.apply( op.exec.bind( op ) );
+		};
+	var op = api.raw.find( pattern ).sort( sort ).skip( skipCount ).limit( limit );
+	var promise = nodeWhen.apply( op.exec.bind( op ) );
 	return when.try( apply, promise )
 				.then( function( data ) {
 					data.continuation = { limit: limit, page: pageIndex, sort: sort };
@@ -78,14 +78,13 @@ function wrap( db ) {
 }
 
 module.exports = function( fileName ) {
-	var dbPath = path.join( config.autohost.nedb.data, fileName ),
-		store = new Datastore( { filename: dbPath, autoload: true } ),
-		api = wrap( store );
+	var dbPath = path.join( config.autohost.nedb.data, fileName );
+	var store = new Datastore( { filename: dbPath, autoload: true } );
+	var api = wrap( store );
 	store.persistence.compactDatafile();
 	store.persistence.setAutocompactionInterval( 60000 );
 	return {
 		count: count.bind( null, api ),
-		fetch: fetch.bind( null, api ),
 		fetch: function( pattern, map, continuation ) {
 			if( ( _.isObject( continuation ) && continuation.limit ) || _.isNumber( continuation ) ) {
 				return fetchPage( api, pattern, map, continuation );
