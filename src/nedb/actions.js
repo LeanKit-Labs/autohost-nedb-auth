@@ -11,7 +11,7 @@ function changeRoles( actionname, roles, verb ) {
 }
 
 function create( actionname, resource ) {
-	return actions.upsert( { name: actionname }, { $set: { name: actionname, resource: resource }, $push: { roles: [] } } );
+	return actions.upsert( { name: actionname }, { $set: { name: actionname, resource: resource } } );
 }
 
 function getList( continuation ) {
