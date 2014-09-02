@@ -1,5 +1,6 @@
-var util = require('util'),
-	Strategy = require('passport-strategy').Strategy;
+var util = require('util');
+var _ = require( 'lodash' );
+var Strategy = require('passport-strategy').Strategy;
 
 function TokenStrategy( verify ) {
 	Strategy.call( this );
@@ -16,8 +17,8 @@ TokenStrategy.prototype.authenticate = function( req, options ) {
 		if ( !user ) { return self.fail( info ); }
 		self.success( user, info );
 	}
-	var header = req.headers[ 'authorization' ],
-		token = readToken( header );
+	var header = req.headers[ 'authorization' ];
+	var token = readToken( header );
 	this._verify( token, verified );
 };
 
