@@ -117,7 +117,7 @@ function updateActions( actionList ) {
 }
 
 function userCan( userRoles, actionRoles ) {
-	return actionRoles.length === 0 || _.intersection( actionRoles, userRoles ).length > 0;
+	return ( !actionRoles || actionRoles.length === 0 ) || _.intersection( actionRoles, userRoles ).length > 0;
 }
 
 function verifyCredentials( username, password ) {
