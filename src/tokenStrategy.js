@@ -21,7 +21,7 @@ TokenStrategy.prototype.authenticate = function( req, options ) {
 		}
 		self.success( user, info );
 	}
-	var header = req.headers.authorization || req.headrs.Authorization;
+	var header = req.headers.authorization || req.headers.Authorization;
 	var token = readToken( header );
 	this._verify( token, verified );
 };

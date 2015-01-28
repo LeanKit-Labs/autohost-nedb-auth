@@ -1,6 +1,6 @@
 {
   "name": "autohost-nedb-auth",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Nedb backed auth provider for autohost",
   "main": "src/index.js",
   "scripts": {},
