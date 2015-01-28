@@ -1,6 +1,6 @@
-var util = require('util');
+var util = require( 'util' );
 var _ = require( 'lodash' );
-var Strategy = require('passport-strategy').Strategy;
+var Strategy = require( 'passport-strategy' ).Strategy;
 
 function TokenStrategy( verify ) {
 	Strategy.call( this );
@@ -13,11 +13,15 @@ util.inherits( TokenStrategy, Strategy );
 TokenStrategy.prototype.authenticate = function( req, options ) {
 	var self = this;
 	function verified( err, user, info ) {
-		if ( err ) { return self.error( err ); }
-		if ( !user ) { return self.fail( info ); }
+		if ( err ) {
+			return self.error( err );
+		}
+		if ( !user ) {
+			return self.fail( info );
+		}
 		self.success( user, info );
 	}
-	var header = req.headers[ 'authorization' ];
+	var header = req.headers.authorization || req.headrs.Authorization;
 	var token = readToken( header );
 	this._verify( token, verified );
 };

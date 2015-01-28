@@ -52,9 +52,9 @@ var wrapper = {
 
 function authenticate( req, res, next ) {
 	var authorization = req.headers.authorization;
-	if( /Token/i.test( authorization ) ) {
+	if ( /Token/i.test( authorization ) ) {
 		tokenAuth( req, res, next );
-	} else if( /Bearer/i.test( authorization ) ) {
+	} else if ( /Bearer/i.test( authorization ) ) {
 		bearerAuth( req, res, next );
 	} else {
 		basicAuth( req, res, next );
@@ -95,24 +95,28 @@ function checkPermission( user, action ) {
 	var actionName = action.roles ? action.name : action;
 	var actionRoles = _.isEmpty( action.roles ) ? actions.getRoles( actionName ) : action.roles;
 	var userName = user.name ? user.name : user;
-	var userRoles = _.isEmpty( user.roles ) ? users.getRoles( userName ) : user.roles;
-	if( user.roles && user.disabled ) {
+	var userRoles = _.isEmpty( user.roles ) ? users.getRoles( user ) : user.roles;
+	if ( user.roles && user.disabled ) {
 		userRoles = [];
 	}
 	return when.try( userCan, userRoles, actionRoles );
 }
 
-function deserializeUser( user, done ) { done( null, user); }
+function deserializeUser( user, done ) {
+	done( null, user );
+}
 
-function serializeUser( user, done ) { done( null, user ); }
+function serializeUser( user, done ) {
+	done( null, user );
+}
 
 function updateActions( actionList ) {
 	var list = _.flatten(
-			_.map( actionList, function( resource, resourceName ) {
-				return _.map( resource, function( action ) { 
-					return actions.create( action, resourceName );
-				} );
-			} ) );
+		_.map( actionList, function( resource, resourceName ) {
+			return _.map( resource, function( action ) {
+				return actions.create( action, resourceName );
+			} );
+		} ) );
 	return when.all( list );
 }
 
@@ -124,7 +128,7 @@ function verifyCredentials( username, password ) {
 	return users
 		.getByName( username )
 		.then( function( user ) {
-			if( user ) {
+			if ( user ) {
 				var valid = user.hash === crypt.hashSync( password, user.salt );
 				return valid ? _.omit( user, 'hash', 'salt', 'tokens' ) : false;
 			} else {
