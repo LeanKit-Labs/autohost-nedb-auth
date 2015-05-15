@@ -5,9 +5,9 @@ This library currently supports basic, OAuth2 (bearer) and generic token authori
 
 ### usage
 ```js
-var host = require( 'autohost' ),
-	authProvider = require( 'autohost-nedb-auth' )( {} );
-host.init( {}, authProvider );
+var autohost = require( 'autohost' ),
+	auth = require( 'autohost-nedb-auth' )( {} );
+var host = autohost( { authProvider: authProvider } );
 ```
 
 ### config
