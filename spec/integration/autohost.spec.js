@@ -1,19 +1,18 @@
-var should = require( 'should' );
+require( '../setup' );
 var request = require( 'request' ).defaults( { jar: false } );
-var when = require( 'when' );
-var fs = require( 'fs' );
-var path = require( 'path' );
+var autohost = require( 'autohost' );
 
 describe( 'Autohost Integration', function() {
-	var host = require( 'autohost' );
+	var host;
 	var auth = require( '../../src/index.js' )( {} );
 
 	before( function( done ) {
-
-		host.init( {
-			port: 88981,
+		host = autohost( {
+			authProvider: auth,
+			port: 8898,
 			resources: './spec/integration/resources'
-		}, auth );
+		} );
+		host.start();
 		setTimeout( function() {
 			auth.changeActionRoles( 'test.hi', [ 'user' ], 'add' );
 			done();
@@ -26,7 +25,7 @@ describe( 'Autohost Integration', function() {
 			before( function( done ) {
 				host.passport.resetUserCheck();
 				request.get( {
-					url: 'http://localhost:88981/api/test/anon'
+					url: 'http://localhost:8898/api/test/anon'
 				}, function( err, resp ) {
 						response = {
 							body: resp.body,
@@ -49,7 +48,7 @@ describe( 'Autohost Integration', function() {
 			var response;
 			before( function( done ) {
 				request.get( {
-					url: 'http://localhost:88981/api/test/hi'
+					url: 'http://localhost:8898/api/test/hi'
 				}, function( err, resp ) {
 						response = {
 							body: resp.body,
@@ -87,7 +86,7 @@ describe( 'Autohost Integration', function() {
 			var response;
 			before( function( done ) {
 				request.get( {
-					url: 'http://localhost:88981/api/test/hi',
+					url: 'http://localhost:8898/api/test/hi',
 					headers: {
 						// authorization: 'Basic dXNlcjE6dGVzdA=='
 						authorization: 'Basic dXNlcjE6dGVzdDE='
@@ -114,7 +113,7 @@ describe( 'Autohost Integration', function() {
 			var response;
 			before( function( done ) {
 				request.get( {
-					url: 'http://localhost:88981/api/test/hi',
+					url: 'http://localhost:8898/api/test/hi',
 					headers: {
 						authorization: 'Basic dXNlcjE6dGVzdA=='
 					}
@@ -139,7 +138,7 @@ describe( 'Autohost Integration', function() {
 			var response;
 			before( function( done ) {
 				request.get( {
-					url: 'http://localhost:88981/api/test/hi',
+					url: 'http://localhost:8898/api/test/hi',
 					headers: {
 						authorization: 'Bearer token'
 					}
