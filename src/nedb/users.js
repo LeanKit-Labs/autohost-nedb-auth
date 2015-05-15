@@ -66,22 +66,28 @@ function getList( continuation ) {
 		} );
 }
 
-function getRoles( username ) {
-	return users.fetch( { name: username }, function( x ) { return x.disabled ? [] : x.roles; } )
+function getRoles( user ) {
+	return users.fetch( { name: user.name }, function( x ) {
+		return x.disabled ? [] : x.roles;
+	} )
 		.then( function( list ) {
 			return list.length ? list[ 0 ] : [];
 		} );
 }
 
 function getTokens( username ) {
-	return users.fetch( { name: username }, function( x ) { return x.tokens; } )
+	return users.fetch( { name: username }, function( x ) {
+		return x.tokens;
+	} )
 		.then( function( list ) {
 			return list.length ? list[ 0 ] : [];
 		} );
 }
 
 function hasUsers() {
-	return users.count().then( function( count ) { return count > 0; } );
+	return users.count().then( function( count ) {
+		return count > 0;
+	} );
 }
 
 module.exports = {
@@ -98,5 +104,5 @@ module.exports = {
 	getList: getList,
 	getRoles: getRoles,
 	getTokens: getTokens,
-	hasUsers: hasUsers	
+	hasUsers: hasUsers
 };

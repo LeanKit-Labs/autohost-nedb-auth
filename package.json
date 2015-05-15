@@ -1,6 +1,6 @@
 {
   "name": "autohost-nedb-auth",
-  "version": "0.1.0-4",
+  "version": "0.2.1",
   "description": "Nedb backed auth provider for autohost",
   "main": "src/index.js",
   "scripts": {},
@@ -11,7 +11,7 @@
   "license": "MIT License - http://opensource.org/licenses/MIT",
   "dependencies": {
     "bcrypt": "~0.7.8",
-    "configya": "~0.0.9",
+    "configya": "~0.2.0",
     "lodash": "~2.4.1",
     "nedb": "^0.10.6",
     "passport-http": "^0.2.2",
@@ -20,8 +20,12 @@
     "when": "~3.1.0"
   },
   "devDependencies": {
+    "autohost": "^0.3.0-18",
     "gulp": "^3.8.7",
+    "gulp-istanbul": "^0.5.0",
     "gulp-mocha": "~0.4.1",
+    "open": "0.0.5",
+    "request": "^2.51.0",
     "should": "~3.3.0"
   }
 }

@@ -21,7 +21,9 @@ function getList( continuation ) {
 }
 
 function getRoles( actionname ) {
-	return actions.fetch( { name: actionname }, function( x ) { return x.roles; } )
+	return actions.fetch( { name: actionname }, function( x ) {
+		return x.roles;
+	} )
 		.then( function( list ) {
 			return list.length ? list[ 0 ] : [];
 		} );

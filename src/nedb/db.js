@@ -5,12 +5,12 @@ var when = require( 'when' );
 var nodeWhen = require( 'when/node' );
 var Datastore = require( 'nedb' );
 var config = require( 'configya' )( {
-		autohost: {
-			nedb: {
-				data: path.join( process.cwd(), './data' )
-			}
+	autohost: {
+		nedb: {
+			data: path.join( process.cwd(), './data' )
 		}
-	}, './config.json' );
+	}
+}, './config.json' );
 
 function count( api, pattern ) {
 	return api.count( pattern );
@@ -18,36 +18,42 @@ function count( api, pattern ) {
 
 function fetch( api, pattern, map, continuation ) {
 	continuation = continuation || { sort: {} };
-	map = map || function( x ) { return x; };
-	var apply = function( list ) { return _.map( list, map ); };
+	map = map || function( x ) {
+		return x;
+	};
+	var apply = function( list ) {
+		return _.map( list, map );
+	};
 	var op = api.raw.find( pattern ).sort( continuation.sort );
 	var promise = nodeWhen.apply( op.exec.bind( op ) );
 	return when.try( apply, promise );
 }
 
 function fetchPage( api, pattern, map, continuation ) {
-	map = map || function( x ) { return x; };
+	map = map || function( x ) {
+		return x;
+	};
 	var limit = continuation.limit ? continuation.limit : continuation;
 	var pageIndex = continuation.page ? continuation.page : 1;
-	var skipCount = ( pageIndex -1 ) * limit;
+	var skipCount = ( pageIndex - 1 ) * limit;
 	var sort = continuation.sort || {};
 	var apply = function( list ) {
-			return _.map( list, map ); 
-		};
+		return _.map( list, map );
+	};
 	var op = api.raw.find( pattern ).sort( sort ).skip( skipCount ).limit( limit );
 	var promise = nodeWhen.apply( op.exec.bind( op ) );
 	return when.try( apply, promise )
-				.then( function( data ) {
-					data.continuation = { limit: limit, page: pageIndex, sort: sort };
-					data.continuation.page ++;
-					return data;
-				} )
-				.then( null, function( e ) {
-					console.log( e.stack );
-				} )
-				.catch( function( e ) {
-					console.log( e.stack );
-				} );
+		.then( function( data ) {
+			data.continuation = { limit: limit, page: pageIndex, sort: sort };
+			data.continuation.page++;
+			return data;
+		} )
+		.then( null, function( e ) {
+			console.log( e.stack );
+		} )
+		.catch( function( e ) {
+			console.log( e.stack );
+		} );
 }
 
 function insert( api, doc ) {
@@ -68,10 +74,10 @@ function upsert( api, pattern, doc ) {
 
 function wrap( db ) {
 	return {
-		raw: 	db,
-		count: 	nodeWhen.lift( db.count ).bind( db ),
-		find: 	nodeWhen.lift( db.find ).bind( db ),
-		insert: nodeWhen.lift( db.insert).bind( db ),
+		raw: db,
+		count: nodeWhen.lift( db.count ).bind( db ),
+		find: nodeWhen.lift( db.find ).bind( db ),
+		insert: nodeWhen.lift( db.insert ).bind( db ),
 		remove: nodeWhen.lift( db.remove ).bind( db ),
 		update: nodeWhen.lift( db.update ).bind( db )
 	};
@@ -86,11 +92,11 @@ module.exports = function( fileName ) {
 	return {
 		count: count.bind( null, api ),
 		fetch: function( pattern, map, continuation ) {
-			if( ( _.isObject( continuation ) && continuation.limit ) || _.isNumber( continuation ) ) {
+			if ( ( _.isObject( continuation ) && continuation.limit ) || _.isNumber( continuation ) ) {
 				return fetchPage( api, pattern, map, continuation );
 			} else {
 				return fetch( api, pattern, map, continuation );
-			}	
+			}
 		},
 		insert: insert.bind( null, api ),
 		purge: purge.bind( null, api ),
